@@ -224,6 +224,25 @@ function init() {
     //$('body').css('margin-top','0');
   };
 
+  function storeCategoryContent(categoryContent) {
+    let activeuser = $('.navbar-login a').first().text().trim(); // expect username here
+    w.localStorage.setItem('allCategories_' + activeuser, JSON.stringify(categoryContent));
+  }
+  function restoreCategoryContent() {
+    if (w.localStorage.getItem('allCategories')) { // convert old storage to new storage per user
+        let categoryContentJSON = JSON.parse(w.localStorage.getItem('allCategories')) || [];
+        storeCategoryContent(categoryContentJSON);
+        w.localStorage.removeItem('allCategories');
+        return categoryContentJSON;
+    }
+    let activeuser = $('.navbar-login a').first().text().trim(); // expect username here
+    return JSON.parse(w.localStorage.getItem('allCategories_' + activeuser)) || [];
+  }
+  function removeCategoryContent() {
+    let activeuser = $('.navbar-login a').first().text().trim(); // expect username here
+    w.localStorage.removeItem('allCategories_' + activeuser);
+  }
+
   function missionEditSetup(editScope) {
     var editStep = editScope.mission.ui.view;
 
@@ -244,7 +263,7 @@ function init() {
               editScope.categoryContent[editScope.selectedCategoryID].missions.push(editScope.savedWireMission.mission_guid);
               editScope.categoryContent[editScope.selectedCategoryID].collapse = false;
               editScope.selectedCategoryID = null;
-              w.localStorage.setItem('allCategories', JSON.stringify(editScope.categoryContent));
+              storeCategoryContent(editScope.categoryContent);
             }
             w.$location.url("/")
         }).error(function(b) {
@@ -347,7 +366,7 @@ function init() {
         break;
       case editScope.EditorScreenViews.PREVIEW:
         //If there are user generated categories, add a dropdown to add the new mission to one
-        editScope.categoryContent = JSON.parse(w.localStorage.getItem('allCategories')) || [];
+        editScope.categoryContent = restoreCategoryContent();
         if (editScope.categoryContent.length > 0 && editScope.mission.mission_guid){
           var showCategory = true;
           editScope.categoryContent.forEach(function(category){
@@ -445,7 +464,7 @@ function init() {
         missionScope.categoryContent.push(thisCategory);
         w.localStorage.removeItem('categoryContent' + i);
       }
-      w.localStorage.setItem('allCategories', JSON.stringify(missionScope.categoryContent));
+      storeCategoryContent(missionScope.categoryContent);
 
       //now tidy up the legacy data
       w.localStorage.removeItem('categoryNames');
@@ -453,7 +472,7 @@ function init() {
     }
 
     //get data for all categories
-    missionScope.categoryContent = JSON.parse(w.localStorage.getItem('allCategories')) || [];
+    missionScope.categoryContent = restoreCategoryContent();
     missionScope.selectedCategoryMissionId = null;
 
     //Add position in initial array
@@ -586,7 +605,7 @@ function init() {
     missionScope.categoryContent[categoryID].collapse = false;
     missionScope.selectedCategoryMissionId = null;
     missionScope.selectedCategoryID = null;
-    w.localStorage.setItem('allCategories', JSON.stringify(missionScope.categoryContent));
+    storeCategoryContent(missionScope.categoryContent);
     generateAllMissions();
   }
 
@@ -596,7 +615,7 @@ function init() {
         missionScope.categoryContent[category].missions.splice(i, 1);
       }
     }
-    w.localStorage.setItem('allCategories', JSON.stringify(missionScope.categoryContent));
+    storeCategoryContent(missionScope.categoryContent);
     generateAllMissions();
   }
 
@@ -614,14 +633,14 @@ function init() {
         sortCriteria: 'initial'
       };
       missionScope.categoryContent.push(newCategory);
-      w.localStorage.setItem('allCategories', JSON.stringify(missionScope.categoryContent));
+      storeCategoryContent(missionScope.categoryContent);
       generateAllMissions();
     }
   }
 
   missionScope.nukeCategories = function() {
     missionScope.categoryContent = [];
-    w.localStorage.setItem('allCategories', null);
+    removeCategoryContent();
     generateAllMissions();
   }
 
@@ -629,7 +648,7 @@ function init() {
     if (confirm("Are you sure you want to delete the " + missionScope.categoryContent[category].name + " category? Any missions you've placed in this category will be retured to Unsorted missions.")) {
       //nuke localStorage category
       missionScope.categoryContent.splice(category, 1);
-      w.localStorage.setItem('allCategories', JSON.stringify(missionScope.categoryContent));
+      storeCategoryContent(missionScope.categoryContent);
       generateAllMissions();
     }
   }
@@ -648,7 +667,7 @@ function init() {
   missionScope.toggleCollapse = function(collapse, unsorted){
     collapse.collapse = !collapse.collapse;
     unsorted ? w.localStorage.setItem('unsortedCollapse', collapse.collapse)
-      : w.localStorage.setItem('allCategories', JSON.stringify(missionScope.categoryContent));
+      : storeCategoryContent(missionScope.categoryContent);
   }
 
   missionScope.dragMissions = function(start_pos, start_cat, end_pos, end_cat) {
@@ -686,7 +705,7 @@ function init() {
     }
 
     //then regenerate everything
-    w.localStorage.setItem('allCategories', JSON.stringify(missionScope.categoryContent));
+    storeCategoryContent(missionScope.categoryContent);
     generateAllMissions();
   }
 
@@ -838,7 +857,7 @@ function init() {
               if (mission == undefined){
                 missionScope.categoryContent[i].missions.splice(j,1);
                 j--;
-                w.localStorage.setItem('allCategories', JSON.stringify(missionScope.categoryContent));
+                storeCategoryContent(missionScope.categoryContent);
               } else {
                 missionContent += generateMission(mission, mission.position, i);
                 bannerModal += "<div class='col-xs-2'><img class='img-responsive' src='" + (mission.definition.logo_url ? mission.definition.logo_url : "/images/button_logo.png") + "' /></div>";
@@ -930,7 +949,7 @@ function init() {
       //try to parse data, then turn it into object
       try {
         missionScope.categoryContent = JSON.parse(dataInput);
-        w.localStorage.setItem('allCategories', JSON.stringify(missionScope.categoryContent));
+        storeCategoryContent(missionScope.categoryContent);
         generateAllMissions();
       } catch (e){
         alert('Something went wrong!!');
