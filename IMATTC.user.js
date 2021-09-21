@@ -426,7 +426,7 @@ function init() {
     missionScope.uncategorisedSort = 'initial';
     missionScope.missions = w.$filter("orderBy")(missionScope.missions, 'definition.name');
     missionScope.loadingPreview = false;
-    missionScope.unsortedCollapse = {collapse: w.localStorage.getItem('unsortedCollapse') || true};
+    missionScope.unsortedCollapse = {collapse: JSON.parse(w.localStorage.getItem('unsortedCollapse') || true)};
 
     //handling for legacy data format
     if (!!w.localStorage.getItem('categoryNames')){
