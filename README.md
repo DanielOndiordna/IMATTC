@@ -37,7 +37,7 @@ Lastly, there's even a button at the top of each category, to preview its conten
 
 
 ## Upcoming features
-- Export to [IngressMosaik](https://ingressmosaik.com) functionality
+- Export to [BannerGress](https://bannergress.com) functionality
 - Additional mission sort criteria
 - Searching missions
 
